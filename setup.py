@@ -3,6 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name="kai_bert",
     version="1.0.0",
+    use_scm_version=True,
+    setup_requires=["setuptools>=42", "setuptools_scm"],
     description="A BERT-based Masked Language Model implementation using PyTorch Lightning",
     author="Khairi Abidi",
     author_email="khairi.abidi@majesteye.com",
