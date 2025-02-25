@@ -7,3 +7,5 @@ from kai_bert.modeling import (
     BertMLP,
     BertModel
 )
+
+__version__ = "1.0.0"
