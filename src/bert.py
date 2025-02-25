@@ -12,6 +12,101 @@ from src.modeling import BertModel
 
 
 class BertModelForMaskedLM(LightningModule):
+    """
+    BERT-based Masked Language Model for pretraining with PyTorch Lightning.
+
+    This class implements the BERT architecture for masked language modeling (MLM) using 
+    PyTorch Lightning. It can be used for pretraining or fine-tuning a BERT model on a 
+    masked language modeling task where a portion of input tokens are randomly masked and 
+    the model learns to predict the masked tokens based on their context.
+
+    Parameters:
+    -----------
+    config : Optional[BertConfig]
+        Configuration object containing model hyperparameters such as:
+        - `vocab_size`: Size of the vocabulary.
+        - `hidden_size`: Dimensionality of the model's hidden states.
+        - `num_attention_heads`: Number of attention heads.
+        - `num_hidden_layers`: Number of transformer layers.
+        - `max_position_embeddings`: Maximum sequence length.
+        - `hidden_dropout_prob`: Dropout probability for hidden layers.
+        - `attention_probs_dropout_prob`: Dropout probability for attention probabilities.
+
+    model_path_or_id : Optional[str]
+        Path or identifier to load a pretrained BERT model.
+
+    tokenizer : Union[str, PreTrainedTokenizer]
+        Tokenizer to convert text to token ids and vice versa. Can be a pretrained tokenizer or a path to one.
+
+    mask_ratio : float, default=0.15
+        The ratio of tokens in the input sequence to be masked for the MLM task.
+
+    learning_rate : float, default=1e-3
+        Learning rate used by the AdamW optimizer.
+
+    beta1 : float, default=0.99
+        Beta1 parameter for the AdamW optimizer.
+
+    beta2 : float, default=0.98
+        Beta2 parameter for the AdamW optimizer.
+
+    epsilon : float, default=1e-6
+        Epsilon parameter for the AdamW optimizer.
+
+    Attributes:
+    -----------
+    bert : BertModel
+        The BERT model backbone, either loaded from a pretrained model or initialized from scratch.
+
+    tokenizer : PreTrainedTokenizer
+        Tokenizer used to process input text into token ids.
+
+    loss_fn : nn.CrossEntropyLoss
+        Loss function used for training the masked language model.
+
+    mask_ratio : float
+        Masking ratio used to select tokens for masking during training.
+
+    learning_rate : float
+        The learning rate for optimizer configuration.
+
+    beta1 : float
+        Beta1 parameter for the AdamW optimizer.
+
+    beta2 : float
+        Beta2 parameter for the AdamW optimizer.
+
+    epsilon : float
+        Epsilon parameter for the AdamW optimizer.
+
+    References:
+    -----------
+    - Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2018). 
+      "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding". 
+      arXiv preprint arXiv:1810.04805.
+    - Radford, A., Narasimhan, K., Salimans, T., & Sutskever, I. (2018). 
+      "Improving Language Understanding by Generative Pre-Training". 
+      OpenAI.
+
+    Example Usage:
+    --------------
+    ```python
+    import torch
+    from src.bert import BertModelForMaskedLM, BertConfig
+
+    config = BertConfig(vocab_size=25000, hidden_size=128, num_hidden_layers=6)
+    model = BertModelForMaskedLM(config=config)
+
+    # Example input for training
+    input_ids = torch.randint(0, config.vocab_size, (2, 128))  # Batch of 2, sequence length 128
+    attention_mask = torch.ones(2, 128)  # Masking valid tokens
+    labels = torch.randint(0, config.vocab_size, (2, 128))
+
+    # Forward pass
+    loss = model.training_step({"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}, batch_idx=0)
+    print(f"Training Loss: {loss}")
+    ```
+    """
     def __init__(
         self,
         config: Optional[BertConfig] = None,
@@ -91,6 +186,17 @@ class BertModelForMaskedLM(LightningModule):
         self,
         attention_mask: torch.Tensor
     ) -> torch.Tensor:
+        """
+        Mask a portion of the input tokens (used for MLM) by replacing them with 
+        the `[MASK]` token and generating the corresponding labels.
+        
+        Args:
+            input_ids: Tensor of token ids for the input sequence.
+        
+        Returns:
+            masked_input_ids: Input tensor with masked tokens.
+            labels: Labels for the masked tokens.
+        """
         extended_attention_mask = attention_mask[:, :, None] * attention_mask[:, None, :]
         
         extended_attention_mask = extended_attention_mask.unsqueeze(1)
@@ -174,5 +280,3 @@ class BertModelForMaskedLM(LightningModule):
         attention_mask = inputs['attention_mask']
         
         attention_mask = self._build_4d_attention_mask(attention_mask)
-        
-        
