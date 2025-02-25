@@ -6,8 +6,8 @@ from typing import Optional, Tuple, Union
 from transformers import PreTrainedModel
 from transformers.activations import ACT2FN
 
-from src.configuration import BertConfig
-from src.modeling_outputs import ModelOutputWithLogits
+from kai_bert.configuration import BertConfig
+from kai_bert.modeling_outputs import ModelOutputWithLogits
 
 
 class AbsolutePositionalEncoding(nn.Module):

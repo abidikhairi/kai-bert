@@ -7,8 +7,8 @@ from typing import List, Optional, Tuple, Union
 from pytorch_lightning import LightningModule
 from transformers import AutoTokenizer, PreTrainedTokenizer
 
-from src.configuration import BertConfig
-from src.modeling import BertModel
+from kai_bert.configuration import BertConfig
+from kai_bert.modeling import BertModel
 
 
 class BertModelForMaskedLM(LightningModule):
