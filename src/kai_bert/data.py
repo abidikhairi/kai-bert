@@ -82,16 +82,4 @@ class LanguageModelingDataModule(LightningDataModule):
         return self._get_dataloader(self.test_data, shuffle=False)
     
     def __repr__(self):
-        return f"""
-        LanguageModelingDataModule(
-            tokenizer={self.tokenizer.__repr__()},
-            train_file={self.train_file.__repr__()},
-            valid_file={self.valid_file.__repr__()},
-            test_file={self.test_file.__repr__()},
-            text_column_name={self.text_column_name.__repr__()},
-            batch_size={self.batch_size.__repr__()},
-            num_proc={self.num_proc.__repr__()},
-            csv_kwargs={self.csv_kwargs.__repr__()}
-            data_collator={self.data_collator.__repr__()}
-        )
-    """
+        return f"LanguageModelingDataModule(\n\ttokenizer={self.tokenizer.__repr__()},\n\ttrain_file={self.train_file.__repr__()},\n\tvalid_file={self.valid_file.__repr__()},\n\ttest_file={self.test_file.__repr__()},\n\ttext_column_name={self.text_column_name.__repr__()},\n\tbatch_size={self.batch_size.__repr__()},\n\tnum_proc={self.num_proc.__repr__()},\n\tcsv_kwargs={self.csv_kwargs.__repr__()}\n)"
