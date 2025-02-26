@@ -54,13 +54,13 @@ python train.py
 - [ ] Visualize Linear LR Scheduler 📉
 
 ### 📌 Training & Experimentation:
-- [ ] Add train.py for Masked Language Modeling (MLM) 🏋️
-- [ ] Implement custom data collator for efficient batching 📦
+- [x] Add train.py for Masked Language Modeling (MLM) 🏋️
+- [x] Implement custom data collator for efficient batching 📦
 - [ ] Experiment with different optimizers & schedulers ⚡
 
 ### 📌 General Improvements:
 - [ ] Add inference script for testing 🏎️
-- [ ] Improve documentation with more explanations 📝
+- [x] Improve documentation with more explanations 📝
 
 ## 🎯 Who Is This For?
 - ✅ Students & Researchers learning how BERT works under the hood.
