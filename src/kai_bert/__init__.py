@@ -8,4 +8,6 @@ from kai_bert.modeling import (
     BertModel
 )
 
+from kai_bert.data import LanguageModelingDataModule
+
 __version__ = "1.0.0"
