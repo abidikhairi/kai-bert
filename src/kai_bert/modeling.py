@@ -297,6 +297,66 @@ class SelfAttention(nn.Module):
         
         return result
 
+class MultiQueryAttention(nn.Module):
+    def __init__(self, config: BertConfig, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        if config.hidden_size % config.num_attention_heads != 0:
+            raise ValueError(
+                f"The hidden size ({config.hidden_size}) is not a multiple of the number of attention "
+                f"heads ({config.num_attention_heads})"
+            )
+        
+        self.num_attention_heads = config.num_attention_heads
+        self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
+        
+        self.query = nn.Linear(self.attention_head_size, config.hidden_act, bias=False)        
+        self.key = nn.Linear(self.attention_head_size, self.attention_head_size, bias=False)        
+        self.value = nn.Linear(self.attention_head_size, self.attention_head_size, bias=False)        
+        
+        self.output = nn.Linear(config.hidden_size, config.hidden_size, bias=False)
+    
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Optional[torch.Tensor]]]:
+        bs, seq_len, _ = hidden_states.shape
+        
+        # [bs, seq_len, hidden_size] -> [bs, seq_len, num_heads]
+        query_states = self.query(hidden_states)
+        
+        # [bs, seq_len, num_heads] -> [bs, num_heads, seq_len, head_size]
+        query_states = query_states.view(bs, seq_len, self.num_attention_heads, self.attention_head_size).transpose(1, 2)
+        
+        # [bs, seq_len, hidden_size] -> [bs, seq_len, head_size]
+        key_states = self.key(hidden_states)
+        value_states = self.value(hidden_states)
+
+        # broadcast keys and values
+        # [bs, seq_len, head_size] -> [bs, 1, seq_len, head_size]
+        key_states = key_states.unsqueeze(1)
+        value_states = value_states.unsqueeze(1)
+        
+        # [bs, num_heads, seq_len, head_size] x [bs, num_heads, head_size, seq_len] -> [bs, num_heads, seq_len, seq_len]
+        attention_scores = torch.matmul(query_states, key_states.transpose(-1, -2))
+        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
+        
+        if attention_mask is not None:
+            attention_scores = attention_scores + attention_mask
+
+        # [bs, num_heads, seq_len, seq_len] x [bs, num_heads, seq_len, head_size] -> [bs, num_heads, seq_len, head_size]
+        context = torch.matmul(attention_scores, value_states)
+        context = context.permute(0, 2, 1, 3).contiguous()
+        
+        # [bs, seq_len, num_heads, head_size] -> [bs, seq_len, hidden_size]
+        context = context.view(bs, seq_len, -1)
+        context = self.output(context)
+        
+        result = (context, attention_scores)
+        
+        return result
+
 class BertMLP(nn.Module):
     """
     Multi-Layer Perceptron (MLP) used in the feed-forward network (FFN) of a transformer block.
